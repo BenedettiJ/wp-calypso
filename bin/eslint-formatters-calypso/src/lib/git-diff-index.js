@@ -7,7 +7,7 @@ module.exports = function() {
 
 	const srcPrefix = '--src-prefix=' + path.join( rootPath, '/' );
 	const dstPrefix = '--dst-prefix=' + path.join( rootPath, '/' );
-	const argsDiff = [ 'diff', '--cached', srcPrefix, dstPrefix, '-U0', 'client/', 'server/' ];
+	const argsDiff = [ 'diff', '--cached', srcPrefix, dstPrefix, '-U0' ];
 	const diff = childProcess.spawnSync( 'git', argsDiff ).stdout.toString().trim();
 
 	return diff;

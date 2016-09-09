@@ -2,8 +2,11 @@
 
 'use strict';
 
-const gitDiffBranchVSMaster = require( '../lib/git-diff' );
+const fs = require( 'fs' );
+const gitDiffRemoteVSHead = require( '../lib/git-diff' );
 const gitDiffIndex = require( '../lib/git-diff-index' );
+
+const config = JSON.parse( fs.readFileSync( '.eslines.json', 'utf-8' ) );
 
 module.exports = function() {
 	const whatToDiff = process.env.ESLINES_DIFF;
@@ -12,7 +15,7 @@ module.exports = function() {
 	if ( whatToDiff === 'index' ) {
 		diff = gitDiffIndex();
 	} else { // 'remote'
-		diff = gitDiffBranchVSMaster();
+		diff = gitDiffRemoteVSHead( config.remote );
 	}
 
 	return diff;

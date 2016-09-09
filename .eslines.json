@@ -1,3 +1,4 @@
 {
-    "enforcedRules": [null, "no-unused-vars"]
+    "rulesToNotDowngrade": [null, "no-unused-vars"],
+    "remote": "origin/master"
 }
