@@ -49,10 +49,28 @@ module.exports = function( report, options ) {
 		return require( './formatters/' + processor );
 	};
 
+	/*
+	An eslines processor is a regular ESLint formatter, actually.
+	ESLint does not allow for passing info to the formatters other than
+	trough environment variables. For compatibility reasons,
+	we choose to use this mechanism to pass info to the processors,
+	as if they were running through ESLint such as:
+
+		eslint --formatter=<eslines-processor>
+
+	This will allow us to reuse processors as formatters in other contexts.
+	*/
 	const processor = getProcessor( options.processor );
+
+	// set environment variables
+	process.env.ESLINES_DIFF = options.diff || 'remote';
+
 	const newReport = JSON.parse( processor( report ) );
 
-	if ( newReport ) {
+	// unset environment variables
+	delete process.env.ESLINES_DIFF;
+
+	if ( Array.isArray( newReport ) && ( newReport.length > 0 ) ) {
 		const formatter = getFormatter( options.format );
 		process.stdout.write( formatter( newReport ) );
 

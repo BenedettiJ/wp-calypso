@@ -6,12 +6,17 @@ const optionator = require( 'optionator' )( {
 		option: 'processor',
 		alias: 'p',
 		type: 'String',
-		description: 'choose processor ("eslines" by default)'
+		description: 'choose a processor ("eslines" by default)'
 	}, {
 		option: 'format',
 		alias: 'f',
 		type: 'String',
-		description: 'choose end ESLint format ("stylish" by default)'
+		description: 'choose an ESLint format ("stylish" by default)'
+	}, {
+		option: 'diff',
+		alias: 'd',
+		type: 'String',
+		description: 'choose what to diff ("remote" by default)'
 	} ]
 } );
 
