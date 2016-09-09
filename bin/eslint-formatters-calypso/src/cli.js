@@ -2,7 +2,10 @@
 
 'use strict';
 
+const childProcess = require( 'child_process' );
+const fs = require( 'fs' );
 const path = require( 'path' );
+const exitCode = require( './lib/exit-code' );
 
 /*
 * This function should *not* call process.exit() directly,
@@ -12,7 +15,7 @@ const path = require( 'path' );
 */
 
 module.exports = function( report, options ) {
-	const getFormatter = format => {
+	const getESLintFormatter = format => {
 		// See https://github.com/eslint/eslint/blob/master/lib/cli-engine.js#L477
 
 		let formatterPath;
@@ -44,10 +47,36 @@ module.exports = function( report, options ) {
 		}
 	};
 
-	const getProcessor = processor => {
-		processor = processor || 'eslines';
-		return require( './formatters/' + processor );
+	const getProcessorNameFromConfig = config => {
+		let processorName = config.default || 'lines-modified-and-specific-rules';
+
+		const argsBranchName = [ 'rev-parse', '--abbrev-ref', 'HEAD' ];
+		const head = childProcess.spawnSync( 'git', argsBranchName ).stdout.toString().trim();
+		for ( const branch in config ) {
+			if ( branch === head ) {
+				// branch names could be master, add/topic-branch
+				// and any other git branch valid name
+				processorName = config[ branch ];
+				break;
+			}
+		}
+
+		return processorName;
 	};
+
+	const getProcessor = processorName => {
+		try {
+			return require( './processors/' + processorName );
+		} catch ( ex ) {
+			const msg = 'Problem loading processor: ' + processorName + '\nError: ';
+			ex.message = msg + ex.message;
+			throw ex;
+		}
+	};
+
+	const config = JSON.parse( fs.readFileSync( '.eslines.json', 'utf-8' ) );
+	const processorName = options.processor || getProcessorNameFromConfig( config.processors );
+	const processor = getProcessor( processorName );
 
 	/*
 	An eslines processor is a regular ESLint formatter, actually.
@@ -60,22 +89,20 @@ module.exports = function( report, options ) {
 
 	This will allow us to reuse processors as formatters in other contexts.
 	*/
-	const processor = getProcessor( options.processor );
 
-	// set environment variables
 	process.env.ESLINES_DIFF = options.diff || 'remote';
-
 	const newReport = JSON.parse( processor( report ) );
-
-	// unset environment variables
 	delete process.env.ESLINES_DIFF;
 
 	if ( Array.isArray( newReport ) && ( newReport.length > 0 ) ) {
-		const formatter = getFormatter( options.format );
+		const formatter = getESLintFormatter( options.format );
 		process.stdout.write( formatter( newReport ) );
 
-		return 1;
+		// If newReport has any error, exit code will be 1;
+		// otherwise it will be 0.
+		return exitCode( newReport );
 	}
+
 	// it has nothing to show
 	return 0;
 };

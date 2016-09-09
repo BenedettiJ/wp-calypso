@@ -6,7 +6,7 @@ const optionator = require( 'optionator' )( {
 		option: 'processor',
 		alias: 'p',
 		type: 'String',
-		description: 'choose a processor ("eslines" by default)'
+		description: 'choose a processor ("lines-modified-and-specific-rules" by default)'
 	}, {
 		option: 'format',
 		alias: 'f',

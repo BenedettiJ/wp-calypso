@@ -1,4 +1,8 @@
 {
     "rulesToNotDowngrade": [null, "no-unused-vars"],
-    "remote": "origin/master"
+    "remote": "origin/master",
+    "processors": {
+	    "default": "lines-modified-and-specific-rules",
+	    "master": "parsing-errors"
+    }
 }
