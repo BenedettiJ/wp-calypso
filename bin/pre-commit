@@ -29,24 +29,20 @@ done < /etc/shells
 
 if $is_cli
 then
-	export ESLINES_DIFF='index' # tell eslines to take contents from index
-	./bin/run-lint $(git diff --cached --name-only ) # show coloured output
-	linter_exit_code=`echo $?` # take exit code from run-lint script
-	unset ESLINES_DIFF
+	./bin/run-lint-index $(git diff --cached --name-only client/ server/ test/)
+	linter_exit_code=`echo $?`
 	if [ ! 0 = "$linter_exit_code" ]
 	then
 		echo "\n\033[41mCOMMIT ABORTED:\033[0m the linter reported some problems. If you are aware of them and it is OK, you can repeat the command with --no-verify to avoid this check.\n"
 	fi
 else
-	export ESLINES_DIFF='index' # tell eslines to take contents from index
-	./bin/run-lint $(git diff --cached --name-only ) > /dev/null 2>&1 # do not show output
-	linter_exit_code=`echo $?` # take exit code from run-lint script
-	unset ESLINES_DIFF
+	./bin/run-lint-index $(git diff --cached --name-only client/ server/ test/) > /dev/null 2>&1 # do not show output
+	linter_exit_code=`echo $?`
 	if [ ! 0 = "$linter_exit_code" ]
 	then
 		echo "\nCOMMIT ABORTED by linting errors. To see them, run:"
 		echo "\n\n" # some editors only do 1 newline - sigh
-		echo "export ESLINES_DIFF='index'; ./bin/run-lint \$(git diff --cached --name-only ); unset ESLINES_DIFF"
+		echo "./bin/run-lint-index $(git diff --cached --name-only client/ server/ test/)"
 		echo "\n\n"
 		echo "If you are aware of the linting errors and it is OK, you can avoid this check by executing:"
 		echo "\n\n"

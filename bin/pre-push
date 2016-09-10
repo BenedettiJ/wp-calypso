@@ -58,15 +58,18 @@ do
 		if $is_cli
 		then
 			./bin/run-lint . # show full coloured ouput
-			linter_exit_code=`echo $?` # take exit code from run-lint script
+			linter_exit_code=`echo $?`
 		else
 			./bin/run-lint . > /dev/null 2>&1 # do not show output
-			linter_exit_code=`echo $?` # take exit code from run-lint script
+			linter_exit_code=`echo $?`
 		fi
 		if [ ! 0 = "$linter_exit_code" ]
 		then
 			echo "\nThe linter has reported some PARSING ERRORS in the code you intended to push. Please, resolve them before pushing to master.\n"
-			echo "\nYou may execute the linter again by running: ./bin/run-lint ."
+			echo "\n\n" # some editors only do 1 newline - sigh
+			echo "\nYou may execute the linter again by running: "
+			echo "\n\n" # some editors only do 1 newline - sigh
+			echo "./bin/run-lint ."
 		fi
 
 		exit 1 # push would not be executed
@@ -75,25 +78,21 @@ do
 	# PUSH TO TOPIC BRANCH - git push origin topic-branch:topic-branch
 	if $is_cli
 	then
-		export ESLINES_BRANCH=$local_ref
-		./bin/run-lint $(git diff --name-only $(git merge-base $(git rev-parse --abbrev-ref $local_ref) origin/master)..HEAD server/ client/)
-		linter_exit_code=`echo $?` # take exit code from run-lint script
-		unset ESLINES_BRANCH
+		./bin/run-lint $(git diff --name-only $(git merge-base $(git rev-parse --abbrev-ref $local_ref) origin/master)..HEAD client/ server/ test/)
+		linter_exit_code=`echo $?`
 		if [ ! 0 = "$linter_exit_code" ]
 		then
 			echo "\n\033[41mPUSH ABORTED:\033[0m the linter reported some problems. If you are aware of them and it is OK, you can repeat the command with --no-verify to avoid this check.\n"
 		fi
 		exit $linter_exit_code
 	else
-		export ESLINES_BRANCH=$local_ref
-		./bin/run-lint $(git diff --name-only $(git merge-base $(git rev-parse --abbrev-ref $local_ref) origin/master)..HEAD server/ client/) > /dev/null 2>&1 # do not show output
-		linter_exit_code=`echo $?` # take exit code from run-lint script
-		unset ESLINES_BRANCH
+		./bin/run-lint $(git diff --name-only $(git merge-base $(git rev-parse --abbrev-ref $local_ref) origin/master)..HEAD client/ server/ test/) > /dev/null 2>&1 # do not show output
+		linter_exit_code=`echo $?`
 		if [ ! 0 = "$linter_exit_code" ]
 		then
 			echo "\nPUSH ABORTED by linting errors. To see them, run:"
 			echo "\n\n" # some editors only do 1 newline - sigh
-			echo "export ESLINES_BRANCH=$local_ref; ./bin/run-lint \$(git diff --name-only \$(git merge-base \$(git rev-parse --abbrev-ref $local_ref) origin/master)..HEAD server/ client/)"
+			echo "./bin/run-lint $(git diff --name-only $(git merge-base $(git rev-parse --abbrev-ref $local_ref) origin/master)..HEAD client/ server/ test/)"
 			echo "\n\n"
 			echo "If you are aware of the linting errors and it is OK, you can avoid this check by executing:"
 			echo "\n\n"
