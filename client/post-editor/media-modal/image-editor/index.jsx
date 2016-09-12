@@ -48,6 +48,12 @@ const MediaModalImageEditor = React.createClass( {
 		};
 	},
 
+	getInitialState() {
+		return {
+			imageHasBeenTransformed: true
+		};
+	},
+
 	componentDidMount() {
 		let src,
 			fileName = 'default',
@@ -126,14 +132,22 @@ const MediaModalImageEditor = React.createClass( {
 		return ! transfer.types || -1 !== Array.prototype.indexOf.call( transfer.types, 'Files' );
 	},
 
+	handleImageTransform( imageHasBeenTransformed ) {
+		this.setState( { imageHasBeenTransformed } );
+	},
+
 	render() {
 		return (
 			<div className="editor-media-modal-image-editor">
 				<figure>
 					<div className="editor-media-modal-image-editor__content editor-media-modal__content" >
-						<EditCanvas ref="editCanvas" />
+						<EditCanvas
+							ref="editCanvas"
+							onImageTransform={ this.handleImageTransform }
+						/>
 						<EditToolbar />
 						<EditButtons
+							disabled={ ! this.state.imageHasBeenTransformed }
 							onCancel={ this.props.onImageEditorCancel }
 							onDone={ this.onDone } />
 					</div>
