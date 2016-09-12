@@ -18,6 +18,20 @@ import {
 } from 'state/ui/editor/image-editor/selectors';
 import { setImageEditorCropBounds } from 'state/ui/editor/image-editor/actions';
 
+const defaults = {
+	transform: {
+		degrees: 0,
+		scaleX: 1,
+		scaleY: 1,
+	},
+	crop: {
+		cropTopRatio: 0,
+		cropLeftRatio: 0,
+		cropWidthRatio: 1,
+		cropHeightRatio: 1,
+	}
+};
+
 const MediaModalImageEditorCanvas = React.createClass( {
 	displayName: 'MediaModalImageEditorCanvas',
 
@@ -40,18 +54,11 @@ const MediaModalImageEditorCanvas = React.createClass( {
 
 	getDefaultProps() {
 		return {
-			transform: {
-				degrees: 0,
-				scaleX: 1,
-				scaleY: 1,
-			},
-			crop: {
-				cropTopRatio: 0,
-				cropLeftRatio: 0,
-				cropWidthRatio: 1,
-				cropHeightRatio: 1,
-			},
-			setImageEditorCropBounds: noop
+			transform: defaults.transform,
+			crop: defaults.crop,
+			onImageChange: noop,
+			onImageTransform: noop,
+			setImageEditorCropBounds: noop,
 		};
 	},
 
@@ -127,6 +134,41 @@ const MediaModalImageEditorCanvas = React.createClass( {
 		MediaUtils.canvasToBlob( newCanvas, callback, this.props.mimeType, 1 );
 	},
 
+	/**
+	 * Compare initial `transform` properties with the given `transform` object
+	 * gotten from `props` component object and computes if the image has been transformed.
+	 *
+	 * @return {Boolean} `true` ist the image has changed
+	 */
+	hasTransformed() {
+		return JSON.stringify( defaults.transform ) !== JSON.stringify( this.props.transform );
+	},
+
+	/**
+	 * Compare the initial `crop` object with the given `crop` object
+	 * gotten from `props` component object.
+	 * Since that the window is defined through of events of the user interface
+	 * and sometimes gets tricky get back to the initial value
+	 * we add a threshold to detect when user wanna undo its changes.
+	 *
+	 * @return {Boolean} `true` is the image has been cut
+	 */
+	hasCropped() {
+		let hasCropped = false;
+
+		for ( const prop in this.props.crop ) {
+			const propName = 'crop' + prop[ 0 ].toUpperCase() + prop.substr( 1 );
+			const diff = Math.abs( this.props.crop[ prop ] - defaults.crop[ propName ] );
+
+			if ( diff > 0.005 ) {
+				hasCropped = true;
+				break;
+			}
+		}
+
+		return hasCropped;
+	},
+
 	drawImage() {
 		if ( ! this.image ) {
 			return;
@@ -155,6 +197,7 @@ const MediaModalImageEditorCanvas = React.createClass( {
 		context.rotate( transform.degrees * Math.PI / 180 );
 
 		context.drawImage( this.image, -imageWidth / 2, -imageHeight / 2 );
+		this.props.onImageTransform( this.hasTransformed() || this.hasCropped() );
 
 		context.restore();
 	},
