@@ -21,6 +21,7 @@ const MediaModalImageEditorButtons = React.createClass( {
 	displayName: 'MediaModalImageEditorButtons',
 
 	propTypes: {
+		disabled: React.PropTypes.bool,
 		src: React.PropTypes.string,
 		hasChanges: React.PropTypes.bool,
 		resetImageEditorState: React.PropTypes.func,
@@ -30,6 +31,7 @@ const MediaModalImageEditorButtons = React.createClass( {
 
 	getDefaultProps() {
 		return {
+			disabled: false,
 			src: '',
 			hasChanges: false,
 			resetImageEditorState: noop,
@@ -52,7 +54,7 @@ const MediaModalImageEditorButtons = React.createClass( {
 					{ this.translate( 'Reset' ) }
 				</Button>
 				<Button
-					disabled={ ! this.props.src }
+					disabled={ ! this.props.src || this.props.disabled }
 					primary
 					onClick={ this.props.onDone } >
 					{ this.translate( ' Done ' ) }
